@@ -22,15 +22,15 @@ export default class MerkleTreeProof {
     let nodes = this.leaves;
     while (nodes.length > 1) {
       let newLevel = [];
-      if(let i=0; i<nodes.length; i+=2){
-        if(i+1 < nodes.length){
-          newLevel.push(this.concat(nodes[i] + nodes[i+1]))
-        }else{
-          newLevel.push(nodes[i])
+      for (let i = 0; i < nodes.length; i += 2) {
+        if (i + 1 < nodes.length) {
+          newLevel.push(this.concat(nodes[i], nodes[i + 1]));
+        } else {
+          newLevel.push(nodes[i]);
         }
       }
+      nodes = newLevel;
     }
-    nodes = newLevel;
     return nodes[0];
   }
 
@@ -44,7 +44,41 @@ export default class MerkleTreeProof {
   { data: 'E', left: false }
   ]
   */
-  getProof() {
-    
+  getProof(index) {
+    let proof = [];
+    let nodes = this.leaves;
+    let currentIndex = index;
+    while (nodes.length > 1) {
+      let newLevel = [];
+      for (let i = 0; i < nodes.length; i += 2) {
+        // 짝이 있을 때 (i + 1이 유효한 인덱스일 때)
+        if (i + 1 < nodes.length) {
+          newLevel.push(this.concat(nodes[i], nodes[i + 1]));
+          // 현재 노드의 인덱스가 짝이 될 경우 증명에 추가
+          if (i === currentIndex || i + 1 === currentIndex) {
+            let isLeftNode = currentIndex === i;
+            proof.push({
+              data: isLeftNode ? nodes[i + 1] : nodes[i],
+              left: !isLeftNode,
+            });
+            //i나 i+1이 index인 경우.
+            //currentIndex가 i면 isLeftNode가 true, 아니면 false
+            //true면 오른쪽,  nodes[i+1]을 반환하고
+            //그 아래에서 false를 반환한다.
+            //false면 왼쪽 nodes[i]를 반환하고, 그 아래에 true를 반환한다.
+            currentIndex = Math.floor(i / 2); // 상위 레벨에서의 새로운 인덱스(바닥함수 구간은 1/2)
+          }
+        } else {
+          // 짝이 없으면 그대로 상위 레벨로 올림
+          newLevel.push(nodes[i]);
+          if (i === currentIndex) {
+            currentIndex = Math.floor(i / 2);
+          }
+        }
+      }
+      nodes = newLevel; // 다음 레벨로 이동
+    }
+
+    return proof;
   }
 }

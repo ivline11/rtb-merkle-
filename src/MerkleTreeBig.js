@@ -30,7 +30,6 @@ export default class MerkleTreeBig {
       }
       nodes = newLevel;
     }
-
     return nodes[0];
   }
 }
